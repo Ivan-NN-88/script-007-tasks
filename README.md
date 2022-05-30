@@ -1,6 +1,7 @@
 
 # PROJECT_NAME project
-Vikharev Ivan Alexandrovich.
+
+Vikharev Ivan Alexandrovich
 
 # Requirements
 requirements.txt
