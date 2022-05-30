@@ -1,7 +1,8 @@
 /.idea
 /doc
 /venv
-*.txt
+
 *.pyc
 *.code-workspace
+
 test.py
