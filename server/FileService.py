@@ -12,6 +12,7 @@ def change_dir(path: str, autocreate: bool = True) -> None:
         ValueError: if path is invalid.
     """
     try:
+        print()
         if autocreate and not os.path.exists(path):
             os.makedirs(path)
         os.chdir(path)
@@ -82,7 +83,7 @@ def get_file_data(filename: str) -> dict:
         return 'Filename is invalid!'
 
 
-def create_file(filename: str, content: str = None) -> dict:
+def create_file(filename: str, content: str = '') -> dict:
     """Create a new file.
     Args:
         filename (str): Filename.
