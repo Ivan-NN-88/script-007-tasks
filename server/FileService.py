@@ -11,14 +11,9 @@ def change_dir(path: str, autocreate: bool = True) -> None:
         RuntimeError: if directory does not exist and autocreate is False.
         ValueError: if path is invalid.
     """
-    try:
-        if autocreate and not os.path.exists(path):
-            os.makedirs(path)
-        os.chdir(path)
-    except RuntimeError as exc:
-        raise RuntimeError(exc)
-    except Exception as exc:
-        raise ValueError(exc)
+    if autocreate and not os.path.exists(path):
+        os.makedirs(path)
+    os.chdir(path)
 
 
 def get_files() -> list:
@@ -63,23 +58,18 @@ def get_file_data(filename: str) -> dict:
         RuntimeError: if file does not exist.
         ValueError: if filename is invalid.
     """
-    try:
-        with open(filename, 'r') as file:
-            data = file.read()
+    with open(filename, 'r') as file:
+        data = file.read()
 
-        file_info = {
-            'name': filename,
-            'content': data,
-            'create_date': time.ctime(os.path.getctime(filename)),
-            'edit_date': time.ctime(os.path.getmtime(filename)),
-            'size': os.path.getsize(filename)
-        }
+    file_info = {
+        'name': filename,
+        'content': data,
+        'create_date': time.ctime(os.path.getctime(filename)),
+        'edit_date': time.ctime(os.path.getmtime(filename)),
+        'size': os.path.getsize(filename)
+    }
 
-        return file_info
-    except RuntimeError as exc:
-        raise RuntimeError(exc)
-    except Exception as exc:
-        raise ValueError(exc)
+    return file_info
 
 
 def create_file(filename: str, content: str = '') -> dict:
@@ -96,13 +86,10 @@ def create_file(filename: str, content: str = '') -> dict:
     Raises:
         ValueError: if filename is invalid.
     """
-    try:
-        path = os.path.normpath(filename)
-        with open(path, 'w') as file:
-            file.write(content)
-        return get_file_data(path)
-    except Exception as exc:
-        raise ValueError(exc)
+    path = os.path.normpath(filename)
+    with open(path, 'w') as file:
+        file.write(content)
+    return get_file_data(path)
 
 
 def delete_file(filename: str) -> None:
@@ -113,9 +100,4 @@ def delete_file(filename: str) -> None:
         RuntimeError: if file does not exist.
         ValueError: if filename is invalid.
     """
-    try:
-        os.remove(filename)
-    except RuntimeError as exc:
-        raise RuntimeError(exc)
-    except Exception as exc:
-        raise ValueError(exc)
+    os.remove(filename)
