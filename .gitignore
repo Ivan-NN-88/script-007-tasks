@@ -2,7 +2,6 @@
 /doc
 /venv
 
-*.txt
 *.pyc
 *.code-workspace
 
