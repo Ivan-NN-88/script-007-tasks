@@ -1,3 +1,6 @@
+import os
+import time
+
 
 def change_dir(path: str, autocreate: bool = True) -> None:
     """Change current directory of app.
@@ -10,8 +13,14 @@ def change_dir(path: str, autocreate: bool = True) -> None:
         RuntimeError: if directory does not exist and autocreate is False.
         ValueError: if path is invalid.
     """
-
-    pass
+    try:
+        if autocreate and not os.path.exists(path):
+            os.makedirs(path)
+        os.chdir(path)
+    except RuntimeError:
+        return 'Directory does not exist and autocreate is False!'
+    except ValueError:
+        return 'Path is invalid!'
 
 
 def get_files() -> list:
@@ -24,8 +33,22 @@ def get_files() -> list:
         - edit_date (datetime): date of last file modification.
         - size (int): size of file in bytes.
     """
+    result = []
 
-    pass
+    for file in os.listdir(os.getcwd()):
+        if not os.path.isfile(file):
+            continue
+        
+        file_info = {
+            'name': file,
+            'create_date': time.ctime(os.path.getctime(file)),
+            'edit_date': time.ctime(os.path.getmtime(file)),
+            'size': os.path.getsize(file)
+        }
+
+        result.append(file_info)
+    
+    return result
 
 
 def get_file_data(filename: str) -> dict:
@@ -46,8 +69,23 @@ def get_file_data(filename: str) -> dict:
         RuntimeError: if file does not exist.
         ValueError: if filename is invalid.
     """
+    try:
+        with open(filename, 'r') as file:
+            data = file.read()
 
-    pass
+        file_info = {
+            'name': filename,
+            'content': data,
+            'create_date': time.ctime(os.path.getctime(filename)),
+            'edit_date': time.ctime(os.path.getmtime(filename)),
+            'size': os.path.getsize(filename)
+        }
+
+        return file_info
+    except RuntimeError:
+        return 'File does not exist!'
+    except ValueError:
+        return 'Filename is invalid!'
 
 
 def create_file(filename: str, content: str = None) -> dict:
@@ -67,8 +105,20 @@ def create_file(filename: str, content: str = None) -> dict:
     Raises:
         ValueError: if filename is invalid.
     """
+    try:
+        with open(filename, 'w') as file:
+            file.write(content)
 
-    pass
+        file_info = {
+            'name': filename,
+            'content': content,
+            'create_date': time.ctime(os.path.getctime(filename)),
+            'size': os.path.getsize(filename)
+        }
+
+        return file_info
+    except ValueError:
+        return 'Filename is invalid!'
 
 
 def delete_file(filename: str) -> None:
@@ -81,5 +131,9 @@ def delete_file(filename: str) -> None:
         RuntimeError: if file does not exist.
         ValueError: if filename is invalid.
     """
-
-    pass
+    try:
+        os.remove(filename)
+    except RuntimeError:
+        return 'File does not exist!'
+    except ValueError:
+        return 'Filename is invalid!'
