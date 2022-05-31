@@ -1,9 +1,8 @@
+import os
 from FileService import delete_file, create_file
 
 
-filename = 'tmp.txt'
-
-
-def test_delete_file():
-    create_file(filename)
-    assert delete_file(filename) is None
+def test_delete_file(directory_handler):
+    """Сhecks сorrect file deletion."""
+    create_file(directory_handler)
+    assert delete_file(directory_handler) is None and not os.path.exists(directory_handler)

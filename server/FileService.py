@@ -12,14 +12,13 @@ def change_dir(path: str, autocreate: bool = True) -> None:
         ValueError: if path is invalid.
     """
     try:
-        print()
         if autocreate and not os.path.exists(path):
             os.makedirs(path)
         os.chdir(path)
-    except RuntimeError:
-        return 'Directory does not exist and autocreate is False!'
-    except ValueError:
-        return 'Path is invalid!'
+    except RuntimeError as exc:
+        raise RuntimeError(exc)
+    except Exception as exc:
+        raise ValueError(exc)
 
 
 def get_files() -> list:
@@ -77,10 +76,10 @@ def get_file_data(filename: str) -> dict:
         }
 
         return file_info
-    except RuntimeError:
-        return 'File does not exist!'
-    except ValueError:
-        return 'Filename is invalid!'
+    except RuntimeError as exc:
+        raise RuntimeError(exc)
+    except Exception as exc:
+        raise ValueError(exc)
 
 
 def create_file(filename: str, content: str = '') -> dict:
@@ -98,19 +97,12 @@ def create_file(filename: str, content: str = '') -> dict:
         ValueError: if filename is invalid.
     """
     try:
-        with open(filename, 'w') as file:
+        path = os.path.normpath(filename)
+        with open(path, 'w') as file:
             file.write(content)
-
-        file_info = {
-            'name': filename,
-            'content': content,
-            'create_date': time.ctime(os.path.getctime(filename)),
-            'size': os.path.getsize(filename)
-        }
-
-        return file_info
-    except ValueError:
-        return 'Filename is invalid!'
+        return get_file_data(path)
+    except Exception as exc:
+        raise ValueError(exc)
 
 
 def delete_file(filename: str) -> None:
@@ -123,7 +115,7 @@ def delete_file(filename: str) -> None:
     """
     try:
         os.remove(filename)
-    except RuntimeError:
-        return 'File does not exist!'
-    except ValueError:
-        return 'Filename is invalid!'
+    except RuntimeError as exc:
+        raise RuntimeError(exc)
+    except Exception as exc:
+        raise ValueError(exc)
