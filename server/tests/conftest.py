@@ -8,8 +8,19 @@ file_dir = fr'{os.getcwd()}\tmp'
 file_path = fr'{file_dir}\{file_name}'
 
 
+@pytest.fixture(scope='session')
+def directory_remover(request):
+    # Run tests.
+    yield
+
+    # Remove tmp directory.
+    if os.path.exists(file_dir):
+        os.chdir(os.path.split(file_dir)[0])
+        os.rmdir(file_dir)
+
+
 @pytest.fixture()
-def directory_handler(request):
+def directory_handler(directory_remover):
     # Run tests.
     yield file_path
 
