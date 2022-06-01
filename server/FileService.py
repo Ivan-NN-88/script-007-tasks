@@ -30,7 +30,7 @@ def get_files() -> list:
     for file in os.listdir(os.getcwd()):
         if not os.path.isfile(file):
             continue
-        
+
         file_info = {
             'name': file,
             'create_date': time.ctime(os.path.getctime(file)),
@@ -39,7 +39,7 @@ def get_files() -> list:
         }
 
         result.append(file_info)
-    
+
     return result
 
 
@@ -62,7 +62,7 @@ def get_file_data(filename: str) -> dict:
         data = file.read()
 
     file_info = {
-        'name': filename,
+        'name': os.path.split(filename)[1],
         'content': data,
         'create_date': time.ctime(os.path.getctime(filename)),
         'edit_date': time.ctime(os.path.getmtime(filename)),
