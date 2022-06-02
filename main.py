@@ -9,9 +9,10 @@
 import argparse
 import logging
 import os
+from traceback import format_exc
 
 from server.FileService import change_dir
-from utils.log_config import LogSetter
+from utils.log_config import Color, LogSetter
 
 
 def main():
@@ -70,5 +71,9 @@ if __name__ == '__main__':
     args = parses_arguments()
     # Setting up logging.
     LogSetter(args.logfilename, args.level).set_mode2()
+
     # Start file server.
-    main()
+    try:
+        main()
+    except Exception:
+        Color.logging_color(f'The server is stopped:\n{format_exc()}', 'error')
