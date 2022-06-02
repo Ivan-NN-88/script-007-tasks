@@ -7,6 +7,7 @@ def test_get_file_data(directory_handler):
     create_file(directory_handler)
     result = get_file_data(directory_handler)
 
+    # The result should be a dictionary with specific keys and values.
     assert isinstance(result, dict)
     assert 'name' in result
-    assert result['name'] == os.path.split(directory_handler)[1]
+    assert result['name'] == os.path.split(directory_handler)[-1]

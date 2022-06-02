@@ -1,8 +1,29 @@
 """Working in the file server."""
 
 # Python standard libraries.
+import logging
 import os
+import re
 import time
+
+from pytest import PytestRemovedIn8Warning
+
+
+def __checking_path(path: str) -> bool:
+    """Checks the path for the content of "..".
+
+    Args:
+        path (str): specify the path to check.
+
+    Raises:
+        ValueError: if path is invalid.
+    """
+    logging.info(f'Checking the path [{path}] for validity...')
+
+    if re.findall(r'\..\|/../|\\..\\|//..//', path):
+        raise ValueError(f'Path [{path}] is invalid!')
+
+    logging.info(f'Checking the path [{path}] for validity is completed.')
 
 
 def change_dir(path: str, autocreate: bool = True) -> None:
@@ -16,9 +37,22 @@ def change_dir(path: str, autocreate: bool = True) -> None:
         RuntimeError: if directory does not exist and autocreate is False.
         ValueError: if path is invalid.
     """
-    if autocreate and not os.path.exists(path):
+    logging.info(f'Changing the current application directory to [{path}]...')
+
+    # Checking/creating a directory.
+    __checking_path(path)
+    path_exists = os.path.exists(path)
+    if autocreate and not path_exists:
+        logging.info('There is no such directory, I am creating it...')
         os.makedirs(path)
+        logging.info('The creation of the directory is completed.')
+    elif not autocreate and not path_exists:
+        raise RuntimeError(f'The directory [{path}] does not exist and autocreate is False!')
+
+    # Change directory.
     os.chdir(path)
+
+    logging.info(f'Changing the current application directory to [{path}] is completed.')
 
 
 def get_files() -> list:
@@ -31,6 +65,8 @@ def get_files() -> list:
         - edit_date (datetime): date of last file modification.
         - size (int): size of file in bytes.
     """
+    logging.info('Getting info about all files in working directory...')
+
     result = []
 
     for file in os.listdir(os.getcwd()):
@@ -46,6 +82,7 @@ def get_files() -> list:
 
         result.append(file_info)
 
+    logging.info('Getting info about all files in working directory is completed.')
     return result
 
 
@@ -67,6 +104,8 @@ def get_file_data(filename: str) -> dict:
         RuntimeError: if file does not exist.
         ValueError: if filename is invalid.
     """
+    logging.info(f'Getting full info about file [{filename}]...')
+
     with open(filename, 'r') as file:
         data = file.read()
 
@@ -78,6 +117,7 @@ def get_file_data(filename: str) -> dict:
         'size': os.path.getsize(filename)
     }
 
+    logging.info(f'Getting full info about file [{filename}] is completed.')
     return file_info
 
 
@@ -98,10 +138,21 @@ def create_file(filename: str, content: str = '') -> dict:
     Raises:
         ValueError: if filename is invalid.
     """
-    path = os.path.normpath(filename)
-    with open(path, 'w') as file:
-        file.write(content)
-    return get_file_data(path)
+    logging.info(f'Creating a file [{filename}] with content...')
+
+    # Checking the file for validity.
+    __checking_path(filename)
+
+    # Create file.
+    with open(filename, 'wb') as file:
+        if content:
+            data = bytes(content)
+            file.write(data)
+
+    # Get file data.
+    return get_file_data(filename)
+
+    logging.info(f'Creating a file [{filename}] with content is completed.')
 
 
 def delete_file(filename: str) -> None:
@@ -114,4 +165,14 @@ def delete_file(filename: str) -> None:
         RuntimeError: if file does not exist.
         ValueError: if filename is invalid.
     """
+    logging.info(f'Deleting a file [{filename}]...')
+
+    # Checking a file.
+    __checking_path(filename)
+    if not os.path.exists(filename):
+        raise RuntimeError(f'The file [{filename}] does not exist!')
+
+    # Deleting a file.
     os.remove(filename)
+
+    logging.info(f'Deleting a file [{filename}] is completed.')

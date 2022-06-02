@@ -1,9 +1,9 @@
 
 # File server project
-Author is Viharev Ivan Alexandrovich
+Author is Viharev Ivan Alexandrovich.
 
 # Requirements
-requirements.txt
+See the requirements.txt.
 
 ## General
 
@@ -17,8 +17,8 @@ requirements.txt
 
 ## File Service
 
-- [ ] Avoid usage of dangerous values like `../../../etc/passwd`
-- [ ] Support binary file content as well
+- [x] Avoid usage of dangerous values like `../../../etc/passwd`
+- [x] Support binary file content as well
 
 ## Configuration
 

@@ -10,7 +10,7 @@
 import argparse
 import logging
 import os
-# Business libraries
+# Business libraries.
 from server.FileService import change_dir
 from utils.log_config import LOGGING_LEVELS, LogSetter
 
@@ -29,8 +29,11 @@ def parses_arguments():
 
     Returns:
         parser object.
-        * -d : path to the working directory.
-        * -l : logging level.
+
+        Args:
+        * -d --dir: path to the working directory.
+        * -l --level: logging level.
+        * -lfn --logfilename: logging file name with extension.
     """
     parser = argparse.ArgumentParser(description='Path to the working directory')
 
