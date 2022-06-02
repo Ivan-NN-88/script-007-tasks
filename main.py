@@ -11,7 +11,7 @@ import logging
 import os
 
 from server.FileService import change_dir
-from utils.log_config import LOGGING_LEVELS, LogSetter
+from utils.log_config import LogSetter
 
 
 def main():
@@ -50,7 +50,7 @@ def parses_arguments():
         '--level',
         type=str,
         help='Input the logging level',
-        choices=LOGGING_LEVELS,
+        choices=list(logging._nameToLevel.keys()),
         default='INFO'
     )
     # Log file name.

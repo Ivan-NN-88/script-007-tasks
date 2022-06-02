@@ -17,7 +17,7 @@ def __checking_path(path: str) -> bool:
     """
     logging.info(f'Checking the path [{path}] for validity...')
 
-    if re.findall(r'\..\|/../|\\..\\|//..//', path):
+    if re.findall(r'[/\\]..[/\\]', path):
         raise ValueError(f'Path [{path}] is invalid!')
 
     logging.info(f'Checking the path [{path}] for validity is completed.')
@@ -104,7 +104,7 @@ def get_file_data(filename: str) -> dict:
     logging.info(f'Getting full info about file [{filename}]...')
 
     with open(filename, 'rb') as file:
-        data = file.read().decode('utf-8')
+        data = file.read()
 
     file_info = {
         'name': os.path.split(filename)[-1],
@@ -143,8 +143,6 @@ def create_file(filename: str, content: str = '') -> dict:
     # Create file.
     with open(filename, 'wb') as file:
         if content:
-            if isinstance(content, str):
-                content = content.encode('utf-8')
             data = bytes(content)
             file.write(data)
 

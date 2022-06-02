@@ -10,7 +10,7 @@ def test_create_file(directory_handler):
     assert not os.path.exists(directory_handler)
 
     # I make sure that the file has been created and returned a data dictionary with certain keys|values.
-    result = create_file(directory_handler, 'Test text.')
+    result = create_file(directory_handler, b'Test text.')
     assert os.path.exists(directory_handler)
     assert isinstance(result, dict)
     assert 'name' in result

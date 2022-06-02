@@ -1,17 +1,10 @@
 """Logging configuration for the file server."""
 
-# Python standard libraries.
 import logging, logging.handlers
 import os
 import sys
-# Python external libraries.
+
 import colorama
-
-
-# Setting the color text.
-colorama.init()
-# Logging levels.
-LOGGING_LEVELS = ['DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL']
 
 
 def get_logging_level(level: str):
@@ -27,20 +20,10 @@ def get_logging_level(level: str):
         ValueError: if level is invalid.
     """
     # Checks if the level value is correct.
-    if not level in LOGGING_LEVELS:
+    if not level in logging._nameToLevel:
         raise ValueError(f'{level} - level is not correct. Please correct level!')
 
-    # Get level object.
-    if level == 'DEBUG':
-        return logging.DEBUG
-    elif level == 'INFO':
-        return logging.INFO
-    elif level == 'WARN':
-        return logging.WARN
-    elif level == 'ERROR':
-        return logging.ERROR
-    elif level == 'FATAL':
-        return logging.FATAL
+    return logging._nameToLevel[level]
 
 
 class LogSetter:
@@ -52,14 +35,13 @@ class LogSetter:
     """
 
     def __init__(self, log_file_name: str = 'server.log', level: str = 'INFO') -> None:
-
-        colorama.init()
-
         self.log_file_name = log_file_name
         self.level = level
         self.log_dir_path = os.path.join(os.getcwd(), 'logs')
         self.main_log_file_path = os.path.join(self.log_dir_path, log_file_name)
         self.last_log_file_path = os.path.join(self.log_dir_path, 'last_' + log_file_name)
+
+        colorama.init()
 
         # Prepare logs directory.
         if not os.path.isdir(self.log_dir_path):
