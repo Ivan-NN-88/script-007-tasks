@@ -69,7 +69,7 @@ class LogSetter:
         if os.path.exists(self.last_log_file_path):
             os.remove(self.last_log_file_path)
 
-    def set_1(self):
+    def set_mode1(self):
         """Configuration with file rotation by day."""
         logging.basicConfig(
             level=get_logging_level(self.level),
@@ -84,7 +84,7 @@ class LogSetter:
         Color.logging_color('*' * 35)
         logging.info('"set 1" is selected for logging.')
 
-    def set_2(self):
+    def set_mode2(self):
         """Configuration with last file log and file rotation by size."""
         logging.basicConfig(
             level=get_logging_level(self.level),
@@ -103,18 +103,6 @@ class LogSetter:
 
 class Color:
     """Colors logs by levels"""
-    # If color symbols(ANSI) are disabled in CMD.
-    os.system('')
-
-    GREEN = '\033[38;2;0;150;32m'
-    GREEN_BACK = '\033[48;2;0;150;42m'
-    YELLOW = '\033[33m'
-    YELLOW_BACK = '\033[48;2;255;150;50m'
-    RED = '\033[38;2;255;0;0m'
-    RED_BACK = '\033[48;2;255;0;0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-    END = '\033[0m'
 
     @staticmethod
     def logging_color(message: str, level: str ="info", background: bool =False):
@@ -132,17 +120,20 @@ class Color:
             Color.logging_color('My text log', 'warn')
         """
         if level == 'info':
-            print(Color.GREEN if not background else Color.GREEN_BACK, Color.BOLD, sep='', end='')
+            print(colorama.Fore.GREEN if not background else colorama.Back.GREEN,
+                 colorama.Style.BRIGHT, sep='', end='')
             logging.info(message)
-            print(Color.END, end='')
+            print(colorama.Style.RESET_ALL, end='')
         elif level == 'warn':
-            print(Color.YELLOW if not background else Color.YELLOW_BACK, Color.BOLD, sep='', end='')
+            print(colorama.Fore.YELLOW if not background else colorama.Back.YELLOW,
+                 colorama.Style.BRIGHT, sep='', end='')
             logging.warning(message)
-            print(Color.END, end='')
+            print(colorama.Style.RESET_ALL, end='')
         elif level == 'error':
-            print(Color.RED if not background else Color.RED_BACK, Color.BOLD, sep='', end='')
+            print(colorama.Fore.RED if not background else colorama.Back.RED,
+                 colorama.Style.BRIGHT, sep='', end='')
             logging.error(message)
-            print(Color.END, end='')
+            print(colorama.Style.RESET_ALL, end='')
         else:
             raise ValueError("Failed to colorize the log text!"
                             "Specify the string as the first argument, "

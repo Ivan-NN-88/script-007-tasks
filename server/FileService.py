@@ -1,6 +1,5 @@
 """Working in the file server."""
 
-# Python standard libraries.
 import logging
 import os
 import re
@@ -104,11 +103,11 @@ def get_file_data(filename: str) -> dict:
     """
     logging.info(f'Getting full info about file [{filename}]...')
 
-    with open(filename, 'r') as file:
-        data = file.read()
+    with open(filename, 'rb') as file:
+        data = file.read().decode('utf-8')
 
     file_info = {
-        'name': os.path.split(filename)[1],
+        'name': os.path.split(filename)[-1],
         'content': data,
         'create_date': time.ctime(os.path.getctime(filename)),
         'edit_date': time.ctime(os.path.getmtime(filename)),
@@ -144,10 +143,11 @@ def create_file(filename: str, content: str = '') -> dict:
     # Create file.
     with open(filename, 'wb') as file:
         if content:
+            if isinstance(content, str):
+                content = content.encode('utf-8')
             data = bytes(content)
             file.write(data)
 
-    # Get file data.
     return get_file_data(filename)
 
     logging.info(f'Creating a file [{filename}] with content is completed.')

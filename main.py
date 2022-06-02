@@ -6,11 +6,10 @@
 +++++++++++++++++++++++++++++++++++++++++
 """
 
-# Python standard libraries.
 import argparse
 import logging
 import os
-# Business libraries.
+
 from server.FileService import change_dir
 from utils.log_config import LOGGING_LEVELS, LogSetter
 
@@ -33,7 +32,7 @@ def parses_arguments():
         Args:
         * -d --dir: path to the working directory.
         * -l --level: logging level.
-        * -lfn --logfilename: logging file name with extension.
+        * -f --logfilename: logging file name with extension.
     """
     parser = argparse.ArgumentParser(description='Path to the working directory')
 
@@ -56,7 +55,7 @@ def parses_arguments():
     )
     # Log file name.
     parser.add_argument(
-        '-lfn',
+        '-f',
         '--logfilename',
         type=str,
         help='Input the logging file name with extension',
@@ -70,6 +69,6 @@ if __name__ == '__main__':
     # Parses arguments.
     args = parses_arguments()
     # Setting up logging.
-    LogSetter(args.logfilename, args.level).set_2()
+    LogSetter(args.logfilename, args.level).set_mode2()
     # Start file server.
     main()
