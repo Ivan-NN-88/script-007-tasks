@@ -6,8 +6,6 @@ import os
 import re
 import time
 
-from pytest import PytestRemovedIn8Warning
-
 
 def __checking_path(path: str) -> bool:
     """Checks the path for the content of "..".
