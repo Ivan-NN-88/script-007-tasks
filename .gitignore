@@ -3,6 +3,7 @@
 /.vscode
 /doc
 /logs
+/tmp
 /venv
 
 *.log

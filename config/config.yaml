@@ -1,0 +1,3 @@
+dir: 'D:\project\script-007-tasks'
+level: 'INFO'
+logfilename: 'server.log'
