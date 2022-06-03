@@ -1,3 +1,6 @@
-dir: 'D:\project\script-007-tasks'
-level: 'INFO'
-logfilename: 'server.log'
+# Working directory.
+dir: script-007-tasks
+# Logging level.
+level: DEBUG
+# The name of the log file we are writing logs to.
+logfilename: server.log

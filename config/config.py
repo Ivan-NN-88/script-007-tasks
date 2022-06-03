@@ -60,7 +60,7 @@ def parses_args_env():
     Returns:
         dictionary with keys/values from environment variables.
     """
-    return {k: v for k, v in sorted(os.environ.items())}
+    return {k: v for k, v in sorted(os.environ.items()) if 'SERVER_' in k}
 
 
 def parses_args_YAML():
@@ -69,7 +69,7 @@ def parses_args_YAML():
     Returns:
         dictionary with keys/values from config YAML file.
     """
-    with open(CONFIG_YAML_FILEPATH, 'r') as file:
+    with open(CONFIG_YAML_FILEPATH, 'r', encoding='utf-8') as file:
         return yaml.safe_load(file)
 
 

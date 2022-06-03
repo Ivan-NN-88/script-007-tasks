@@ -5,11 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Модуль",
+            "name": "Python: Текущий файл",
             "type": "python",
             "request": "launch",
-            "module": "config.py",
-            "args": ["-l INFO"]
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["-l", "INFO"]
         }
     ]
 }
