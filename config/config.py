@@ -9,6 +9,7 @@ from dotmap import DotMap
 
 
 CONFIG_YAML_FILEPATH = os.path.join(os.path.dirname(__file__), 'config.yaml')
+ENV_PREFIX = 'SERVER_'
 
 
 def parses_args_CLI():
@@ -60,7 +61,10 @@ def parses_args_env():
     Returns:
         dictionary with keys/values from environment variables.
     """
-    return {k: v for k, v in sorted(os.environ.items()) if 'SERVER_' in k}
+    return {
+        k.replace(ENV_PREFIX, '').lower: v for k, v in sorted(os.environ.items())
+        if k.startswith(ENV_PREFIX)
+    }
 
 
 def parses_args_YAML():
