@@ -9,5 +9,5 @@ def test_delete_file(directory_handler):
     assert os.path.exists(directory_handler)
 
     # I make sure that the file is deleted and no exceptions were raised.
-    assert delete_file(directory_handler) is None
+    assert delete_file(directory_handler) == True
     assert not os.path.exists(directory_handler)

@@ -9,8 +9,11 @@
 import logging
 from traceback import format_exc
 
+from aiohttp import web
+
 from config.config import config
-from server.FileService import change_dir
+from server import FileService
+from server.WebHandler import WebHandler
 from utils.log_config import Color, LogSetter
 
 
@@ -18,7 +21,17 @@ def main():
     """Start of the file server."""
     logging.info('Start of the file server...')
 
-    change_dir(config.dir)
+    handler = WebHandler()
+    app = web.Application()
+    app.add_routes([
+        web.get('/', handler.handle),
+        web.get('/files', handler.get_files),
+        web.get('/files/{file_path}', handler.get_file_data),
+        web.post('/change_dir/{path}', handler.change_dir),
+        web.post('/files/{file_path}', handler.create_file),
+        web.delete('/files/{file_path}', handler.delete_file),
+    ])
+    web.run_app(app, port=config.port)
 
     logging.info('File server stopped.')
 

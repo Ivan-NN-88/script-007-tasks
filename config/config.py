@@ -50,6 +50,14 @@ def parses_args_CLI():
         help='Logging file name with extension',
         default=''
     )
+    # The port that the file server uses.
+    parser.add_argument(
+        '-p',
+        '--port',
+        type=int,
+        help='File server port',
+        default=0
+    )
 
     # Clear all empty args and return result.
     return {k: v for k, v in parser.parse_args().__dict__.items() if v}
@@ -78,7 +86,7 @@ def parses_args_YAML():
 
 
 config = {
-    'dir': 'test_value'
+    'dir': os.getcwd()
 }
 config.update(parses_args_YAML())
 config.update(parses_args_env())

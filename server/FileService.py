@@ -1,9 +1,12 @@
 """Working in the file server."""
 
+import asyncio
+from distutils.command import config
 import logging
 import os
 import re
 import time
+from tkinter.messagebox import NO
 
 
 def __checking_path(path: str) -> bool:
@@ -17,7 +20,7 @@ def __checking_path(path: str) -> bool:
     """
     logging.info(f'Checking the path [{path}] for validity...')
 
-    if re.findall(r'[/\\]..[/\\]', path):
+    if re.findall(r'[/\\]..[/\\]|C[:/\\]+Windows', path):
         raise ValueError(f'Path [{path}] is invalid!')
 
     logging.info(f'Checking the path [{path}] for validity is completed.')
@@ -44,10 +47,12 @@ def change_dir(path: str, autocreate: bool = True) -> None:
         os.makedirs(path)
         logging.info('The creation of the directory is completed.')
     elif not autocreate and not path_exists:
-        raise RuntimeError(f'The directory [{path}] does not exist and autocreate is False!')
+        text_error = f'The directory [{path}] does not exist and autocreate is False!'
+        raise RuntimeError(text_error)
 
     # Change directory.
     os.chdir(path)
+    config.dir = path
 
     logging.info(f'Changing the current application directory to [{path}] is completed.')
 
@@ -106,6 +111,12 @@ def get_file_data(filename: str) -> dict:
     with open(filename, 'rb') as file:
         data = file.read()
 
+    # The content must be returned in a string representation. I try utf-8 first, then ANSI.
+    try:
+        data = data.decode()
+    except Exception:
+        data = data.decode('ANSI')
+
     file_info = {
         'name': os.path.split(filename)[-1],
         'content': data,
@@ -118,12 +129,12 @@ def get_file_data(filename: str) -> dict:
     return file_info
 
 
-def create_file(filename: str, content: str = '') -> dict:
+def create_file(filename: str, content: str = None) -> dict:
     """Create a new file.
 
     Args:
         filename (str): Filename.
-        content (str): String with file content.
+        content (bytes): Bytes with file content.
 
     Returns:
         Dict, which contains name of created file. Keys:
@@ -143,8 +154,8 @@ def create_file(filename: str, content: str = '') -> dict:
     # Create file.
     with open(filename, 'wb') as file:
         if content:
-            data = bytes(content)
-            file.write(data)
+            # data = bytes(content)
+            file.write(content)
 
     return get_file_data(filename)
 
@@ -157,6 +168,9 @@ def delete_file(filename: str) -> None:
     Args:
         filename (str): filename
 
+    Returns:
+        True if the file was successfully deleted.
+
     Raises:
         RuntimeError: if file does not exist.
         ValueError: if filename is invalid.
@@ -165,10 +179,15 @@ def delete_file(filename: str) -> None:
 
     # Checking a file.
     __checking_path(filename)
+    if not os.path.isfile(filename):
+        raise ValueError(f'[{filename}] - This is not a file!')
     if not os.path.exists(filename):
         raise RuntimeError(f'The file [{filename}] does not exist!')
 
     # Deleting a file.
     os.remove(filename)
-
-    logging.info(f'Deleting a file [{filename}] is completed.')
+    if not os.path.exists(filename):
+        logging.info(f'Deleting a file [{filename}] is completed.')
+        return True
+    else:
+        raise RuntimeError(f'File {filename} could not be deleted!')
