@@ -1,0 +1,6 @@
+# Working directory.
+dir: script-007-tasks
+# Logging level.
+level: DEBUG
+# The name of the log file we are writing logs to.
+logfilename: server.log
