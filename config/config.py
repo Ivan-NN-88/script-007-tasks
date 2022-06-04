@@ -37,7 +37,7 @@ def parses_args_CLI():
     parser.add_argument(
         '-l',
         '--level',
-        type=str,
+        type=str.upper,
         help='Logging level',
         choices=list(logging._nameToLevel.keys()),
         default=''
