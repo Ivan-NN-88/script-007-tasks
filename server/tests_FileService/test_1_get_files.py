@@ -1,5 +1,5 @@
 import os
-from FileService import change_dir, create_file, get_files
+from FileService import create_file, get_files
 
 
 def test_get_files(directory_handler):

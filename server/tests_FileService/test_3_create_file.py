@@ -1,12 +1,12 @@
 import os
-from FileService import create_file, delete_file
+from FileService import create_file, delete_obj
 
 
 def test_create_file(directory_handler):
     """Сhecks сorrect file creation."""
     # Before creating a file, I make sure that there is no such file.
     if os.path.exists(directory_handler):
-        delete_file(directory_handler)
+        delete_obj(directory_handler)
     assert not os.path.exists(directory_handler)
 
     # I make sure that the file has been created and returned a data dictionary with certain keys|values.

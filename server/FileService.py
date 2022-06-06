@@ -3,7 +3,10 @@
 import logging
 import os
 import re
+from shutil import rmtree
 import time
+
+from config.config import config
 
 
 def __checking_path(path: str) -> bool:
@@ -17,8 +20,12 @@ def __checking_path(path: str) -> bool:
     """
     logging.info(f'Checking the path [{path}] for validity...')
 
-    if re.findall(r'[/\\]..[/\\]', path):
+    abs_path = os.path.abspath(path)
+
+    if re.findall(r'[/\\].[/\\]|C[:/\\]+Windows', abs_path):
         raise ValueError(f'Path [{path}] is invalid!')
+    if not config.main_dir in abs_path:
+        raise ValueError(f'[{path}] - Are you trying to work outside the scope of the current project!')
 
     logging.info(f'Checking the path [{path}] for validity is completed.')
 
@@ -44,7 +51,8 @@ def change_dir(path: str, autocreate: bool = True) -> None:
         os.makedirs(path)
         logging.info('The creation of the directory is completed.')
     elif not autocreate and not path_exists:
-        raise RuntimeError(f'The directory [{path}] does not exist and autocreate is False!')
+        text_error = f'The directory [{path}] does not exist and autocreate is False!'
+        raise RuntimeError(text_error)
 
     # Change directory.
     os.chdir(path)
@@ -106,6 +114,12 @@ def get_file_data(filename: str) -> dict:
     with open(filename, 'rb') as file:
         data = file.read()
 
+    # The content must be returned in a string representation. I try utf-8 first, then ANSI.
+    try:
+        data = data.decode()
+    except Exception:
+        data = data.decode('ANSI')
+
     file_info = {
         'name': os.path.split(filename)[-1],
         'content': data,
@@ -118,12 +132,12 @@ def get_file_data(filename: str) -> dict:
     return file_info
 
 
-def create_file(filename: str, content: str = '') -> dict:
+def create_file(filename: str, content: bytes = None) -> dict:
     """Create a new file.
 
     Args:
         filename (str): Filename.
-        content (str): String with file content.
+        content (bytes): Bytes with file content.
 
     Returns:
         Dict, which contains name of created file. Keys:
@@ -143,32 +157,45 @@ def create_file(filename: str, content: str = '') -> dict:
     # Create file.
     with open(filename, 'wb') as file:
         if content:
-            data = bytes(content)
-            file.write(data)
+            # data = bytes(content)
+            file.write(content)
 
     return get_file_data(filename)
 
     logging.info(f'Creating a file [{filename}] with content is completed.')
 
 
-def delete_file(filename: str) -> None:
-    """Delete file.
+def delete_obj(path: str) -> None:
+    """Delete file|directory.
 
     Args:
-        filename (str): filename
+        path (str): path to filename or directory.
+
+    Returns:
+        obj_name if the file|directory was successfully deleted.
 
     Raises:
-        RuntimeError: if file does not exist.
-        ValueError: if filename is invalid.
+        RuntimeError: if path does not exist.
+        ValueError: if path is invalid.
     """
-    logging.info(f'Deleting a file [{filename}]...')
+    logging.info(f'Deleting [{path}]...')
 
     # Checking a file.
-    __checking_path(filename)
-    if not os.path.exists(filename):
-        raise RuntimeError(f'The file [{filename}] does not exist!')
+    __checking_path(path)
+    if not os.path.exists(path):
+        raise RuntimeError(f'[{path}] does not exist!')
 
-    # Deleting a file.
-    os.remove(filename)
+    # Deleting file.
+    if os.path.isfile(path):
+        obj_name = 'file'
+        os.remove(path)
+    # Deleting directory.
+    else:
+        obj_name = 'directory'
+        rmtree(path)
 
-    logging.info(f'Deleting a file [{filename}] is completed.')
+    if not os.path.exists(path):
+        logging.info(f'Deleting a {obj_name} [{path}] is completed.')
+        return obj_name
+    else:
+        raise RuntimeError(f'{obj_name.capitalize()} {path} could not be deleted!')

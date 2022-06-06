@@ -1,25 +1,27 @@
 import os
 import pytest
 from shutil import rmtree
-from time import sleep
 
 from FileService import change_dir
+from config.config import config
 
 
 file_name = 'tmp.txt'
-file_dir = os.path.join(os.getcwd(), 'tmp')
+file_dir = os.path.join(config.main_dir, 'tmp')
 file_path = os.path.join(file_dir, file_name)
 
 
 @pytest.fixture(scope='session')
 def directory_remover(request):
-    # Run tests.
-    yield
+    def remover():
+        """Remove tmp directory."""
+        if os.path.exists(file_dir):
+            os.chdir(os.path.split(file_dir)[0])
+            rmtree(file_dir)
 
-    # Remove tmp directory.
-    if os.path.exists(file_dir):
-        os.chdir(os.path.split(file_dir)[0])
-        rmtree(file_dir)
+    remover()
+    yield   # Run tests.
+    remover()
 
 
 @pytest.fixture()

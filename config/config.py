@@ -37,7 +37,7 @@ def parses_args_CLI():
     parser.add_argument(
         '-l',
         '--level',
-        type=str,
+        type=str.upper,
         help='Logging level',
         choices=list(logging._nameToLevel.keys()),
         default=''
@@ -50,9 +50,17 @@ def parses_args_CLI():
         help='Logging file name with extension',
         default=''
     )
+    # The port that the file server uses.
+    parser.add_argument(
+        '-p',
+        '--port',
+        type=int,
+        help='File server port',
+        default=0
+    )
 
     # Clear all empty args and return result.
-    return {k: v for k, v in parser.parse_args().__dict__.items() if v}
+    return {k: v for k, v in parser.parse_known_args()[0].__dict__.items() if v}
 
 
 def parses_args_env():
@@ -78,9 +86,15 @@ def parses_args_YAML():
 
 
 config = {
-    'dir': 'test_value'
+    'dir': 'test dir'
 }
 config.update(parses_args_YAML())
 config.update(parses_args_env())
 config.update(parses_args_CLI())
+
+# In the final settings, I fix the project folder, beyond which it will be impossible to work.
+__dir = os.path.split(os.path.abspath(config['dir']))[-1]
+config['root_dir_name'] = os.path.basename(os.getcwd())
+config['main_dir'] = os.path.join(os.getcwd(), 'working space', __dir)
+
 config = DotMap(config)
