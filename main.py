@@ -12,9 +12,8 @@ from traceback import format_exc
 from aiohttp import web
 
 from config.config import config
-from server import FileService
 from server.WebHandler import WebHandler
-from utils.log_config import Color, LogSetter
+from utils.log import Color, LogSetter
 
 
 def main():
@@ -29,7 +28,7 @@ def main():
         web.get('/files/{file_path}', handler.get_file_data),
         web.post('/change_dir/{path}', handler.change_dir),
         web.post('/files/{file_path}', handler.create_file),
-        web.delete('/files/{file_path}', handler.delete_file),
+        web.delete('/files/{path}', handler.delete_obj),
     ])
     web.run_app(app, port=config.port)
 

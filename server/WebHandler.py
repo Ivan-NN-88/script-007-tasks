@@ -1,22 +1,22 @@
 """Web handler for the file server."""
 
-import base64
 import json
 import logging
+import os
 from traceback import format_exc
 
 from aiohttp import web
 
 from config.config import config
 import server.FileService as FileService
-from utils.log_config import Color
+from utils.log import Color
 
 
 class WebHandler:
     """aiohttp handler with coroutines."""
 
     def __init__(self) -> None:
-        FileService.change_dir(config.dir)
+        FileService.change_dir(config.main_dir)
 
     async def handle(self, request: web.Request, *args, **kwargs) -> web.Response:
         """Basic coroutine for connection testing.
@@ -28,7 +28,8 @@ class WebHandler:
             Response: JSON response with status.
         """
         return web.json_response(data={
-            'status': 'success'
+            'status': 'success',
+            'directory': os.getcwd().split(config.root_dir_name)[-1]
         })
 
     async def change_dir(self, request: web.Request, *args, **kwargs) -> web.Response:
@@ -48,23 +49,29 @@ class WebHandler:
         """
         try:
             Color.logging_color(f'(!) Received a request to change the directory!', 'warn')
+
             path = request.match_info.get('path', '')
-            logging.info(f'directory to change = [{path}]')
+            logging.info(f'input path = [{path}]')
+            path = '..' if path == 'back' else path
+
+            abs_path = os.path.abspath(path)
+            logging.info(f'directory to change = [{abs_path}]')
+
             autocreate = False if request.query.get('autocreate', '').lower() == 'false' else True
             logging.info(f'autocreate parameter = [{autocreate}].')
 
-            FileService.change_dir(path, autocreate=autocreate)
+            FileService.change_dir(abs_path, autocreate=autocreate)
 
             return web.json_response(data={
                 'status': 'success',
-                'message': f'The current directory has been successfully changed to [{path}].'
+                'message': f'The current directory has been successfully changed to [{abs_path}].'
             })
         except Exception:
             data = {
                 'status': 'error',
                 'message': f'An error occurred when changing the directory: [{format_exc()}].'
             }
-            raise web.HTTPBadRequest(body=str(data))
+            raise web.HTTPBadRequest(body=json.dumps(data, indent=4))
 
     async def get_files(self, request: web.Request, *args, **kwargs) -> web.Response:
         """Coroutine for getting info about all files in working directory.
@@ -93,7 +100,7 @@ class WebHandler:
                 'status': 'error',
                 'message': f'An error occurred while receiving files: [{format_exc()}].'
             }
-            raise web.HTTPBadRequest(body=str(data))
+            raise web.HTTPBadRequest(body=json.dumps(data, indent=4))
 
     async def get_file_data(self, request: web.Request, *args, **kwargs) -> web.Response:
         """Coroutine for getting full info about file in working directory.
@@ -121,7 +128,7 @@ class WebHandler:
                 'message': (f'An error occurred while extracting data from file '
                             f'[{file_path}]: [{format_exc()}].')
             }
-            raise web.HTTPBadRequest(body=str(data))    # todo вопрос (?)
+            raise web.HTTPBadRequest(body=json.dumps(data, indent=4))
 
     async def create_file(self, request: web.Request, *args, **kwargs) -> web.Response:
         """Coroutine for creating file.
@@ -154,13 +161,13 @@ class WebHandler:
                 'status': 'error',
                 'message': (f'An error occurred while creating file [{file_path}]: [{format_exc()}].')
             }
-            raise web.HTTPBadRequest(body=str(data))
+            raise web.HTTPBadRequest(body=json.dumps(data, indent=4))
 
-    async def delete_file(self, request: web.Request, *args, **kwargs) -> web.Response:
-        """Coroutine for deleting file.
+    async def delete_obj(self, request: web.Request, *args, **kwargs) -> web.Response:
+        """Coroutine for deleting file|directory.
 
         Args:
-            request (Request): aiohttp request, contains filename.
+            request (Request): aiohttp request, contains path object.
 
         Returns:
             Response: JSON response with success status and success message or error status and error message.
@@ -171,18 +178,19 @@ class WebHandler:
         """
         try:
             Color.logging_color('(!) Received a request to delete file!', 'warn')
-            file_path = request.match_info.get('file_path', '')
-            logging.info(f'file_path = [{file_path}].')
+            path = request.match_info.get('path', '')
+            abs_path = os.path.abspath(path)
+            logging.info(f'file_path = [{abs_path}].')
 
-            FileService.delete_file(file_path)
+            FileService.delete_obj(abs_path)
 
             return web.json_response(data={
                 'status': 'success',
-                'message': f'file {file_path} was successfully deleted.'
+                'message': f'[{path}] was successfully deleted.'
             })
         except Exception:
             data = {
                 'status': 'error',
-                'message': (f'An error occurred when deleting file [{file_path}]: [{format_exc()}].')
+                'message': (f'An error occurred when deleting file [{path}]: [{format_exc()}].')
             }
-            raise web.HTTPBadRequest(body=str(data))
+            raise web.HTTPBadRequest(body=json.dumps(data, indent=4))

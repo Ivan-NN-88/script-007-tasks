@@ -1,12 +1,12 @@
 """Working in the file server."""
 
-import asyncio
-from distutils.command import config
 import logging
 import os
 import re
+from shutil import rmtree
 import time
-from tkinter.messagebox import NO
+
+from config.config import config
 
 
 def __checking_path(path: str) -> bool:
@@ -20,8 +20,12 @@ def __checking_path(path: str) -> bool:
     """
     logging.info(f'Checking the path [{path}] for validity...')
 
-    if re.findall(r'[/\\]..[/\\]|C[:/\\]+Windows', path):
+    abs_path = os.path.abspath(path)
+
+    if re.findall(r'[/\\].[/\\]|C[:/\\]+Windows', abs_path):
         raise ValueError(f'Path [{path}] is invalid!')
+    if not config.main_dir in abs_path:
+        raise ValueError(f'[{path}] - Are you trying to work outside the scope of the current project!')
 
     logging.info(f'Checking the path [{path}] for validity is completed.')
 
@@ -52,7 +56,6 @@ def change_dir(path: str, autocreate: bool = True) -> None:
 
     # Change directory.
     os.chdir(path)
-    config.dir = path
 
     logging.info(f'Changing the current application directory to [{path}] is completed.')
 
@@ -129,7 +132,7 @@ def get_file_data(filename: str) -> dict:
     return file_info
 
 
-def create_file(filename: str, content: str = None) -> dict:
+def create_file(filename: str, content: bytes = None) -> dict:
     """Create a new file.
 
     Args:
@@ -162,32 +165,37 @@ def create_file(filename: str, content: str = None) -> dict:
     logging.info(f'Creating a file [{filename}] with content is completed.')
 
 
-def delete_file(filename: str) -> None:
-    """Delete file.
+def delete_obj(path: str) -> None:
+    """Delete file|directory.
 
     Args:
-        filename (str): filename
+        path (str): path to filename or directory.
 
     Returns:
-        True if the file was successfully deleted.
+        obj_name if the file|directory was successfully deleted.
 
     Raises:
-        RuntimeError: if file does not exist.
-        ValueError: if filename is invalid.
+        RuntimeError: if path does not exist.
+        ValueError: if path is invalid.
     """
-    logging.info(f'Deleting a file [{filename}]...')
+    logging.info(f'Deleting [{path}]...')
 
     # Checking a file.
-    __checking_path(filename)
-    if not os.path.isfile(filename):
-        raise ValueError(f'[{filename}] - This is not a file!')
-    if not os.path.exists(filename):
-        raise RuntimeError(f'The file [{filename}] does not exist!')
+    __checking_path(path)
+    if not os.path.exists(path):
+        raise RuntimeError(f'[{path}] does not exist!')
 
-    # Deleting a file.
-    os.remove(filename)
-    if not os.path.exists(filename):
-        logging.info(f'Deleting a file [{filename}] is completed.')
-        return True
+    # Deleting file.
+    if os.path.isfile(path):
+        obj_name = 'file'
+        os.remove(path)
+    # Deleting directory.
     else:
-        raise RuntimeError(f'File {filename} could not be deleted!')
+        obj_name = 'directory'
+        rmtree(path)
+
+    if not os.path.exists(path):
+        logging.info(f'Deleting a {obj_name} [{path}] is completed.')
+        return obj_name
+    else:
+        raise RuntimeError(f'{obj_name.capitalize()} {path} could not be deleted!')

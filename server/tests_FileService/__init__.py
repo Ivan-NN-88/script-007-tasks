@@ -5,7 +5,7 @@ __all__ = [
     'test_1_get_files',
     'test_2_get_file_data',
     'test_3_create_file',
-    'test_4_delete_file'
+    'test_4_delete_obj',
 ]
 
 NAME = 'Pytests for server.'

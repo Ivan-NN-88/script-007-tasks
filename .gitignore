@@ -2,9 +2,11 @@
 /.pytest_cache
 /.vscode
 /doc
+/files
 /logs
 /tmp
 /venv
+/working space
 
 *.log
 *.pyc
