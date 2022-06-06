@@ -27,10 +27,15 @@ class WebHandler:
         Returns:
             Response: JSON response with status.
         """
-        return web.json_response(data={
-            'status': 'success',
-            'directory': os.getcwd().split(config.root_dir_name)[-1]
-        })
+        try:
+            Color.logging_color('(!) A request has been received to display the current directory!', 'warn')
+            return web.json_response(data={
+                'status': 'success',
+                'directory': os.getcwd().split(config.root_dir_name)[-1]
+            })
+        except Exception:
+            self.get_exception('An error occurred while processing a request to display '
+                              f'the current directory: [{format_exc()}].')
 
     async def change_dir(self, request: web.Request, *args, **kwargs) -> web.Response:
         """Coroutine for changing working directory with files.
@@ -67,11 +72,7 @@ class WebHandler:
                 'message': f'The current directory has been successfully changed to [{abs_path}].'
             })
         except Exception:
-            data = {
-                'status': 'error',
-                'message': f'An error occurred when changing the directory: [{format_exc()}].'
-            }
-            raise web.HTTPBadRequest(body=json.dumps(data, indent=4))
+            self.get_exception(f'An error occurred when changing the directory: [{format_exc()}].')
 
     async def get_files(self, request: web.Request, *args, **kwargs) -> web.Response:
         """Coroutine for getting info about all files in working directory.
@@ -96,11 +97,7 @@ class WebHandler:
                 'data': files
             })
         except Exception:
-            data = {
-                'status': 'error',
-                'message': f'An error occurred while receiving files: [{format_exc()}].'
-            }
-            raise web.HTTPBadRequest(body=json.dumps(data, indent=4))
+            self.get_exception(f'An error occurred while receiving files: [{format_exc()}].')
 
     async def get_file_data(self, request: web.Request, *args, **kwargs) -> web.Response:
         """Coroutine for getting full info about file in working directory.
@@ -123,12 +120,8 @@ class WebHandler:
 
             return web.json_response(data={'status': 'success', 'data': file_data})
         except Exception:
-            data = {
-                'status': 'error',
-                'message': (f'An error occurred while extracting data from file '
-                            f'[{file_path}]: [{format_exc()}].')
-            }
-            raise web.HTTPBadRequest(body=json.dumps(data, indent=4))
+            self.get_exception('An error occurred while extracting data from file '
+                              f'[{file_path}]: [{format_exc()}].')
 
     async def create_file(self, request: web.Request, *args, **kwargs) -> web.Response:
         """Coroutine for creating file.
@@ -157,11 +150,7 @@ class WebHandler:
 
             return web.json_response(data={'status': 'success', 'data': file_data})
         except Exception:
-            data = {
-                'status': 'error',
-                'message': (f'An error occurred while creating file [{file_path}]: [{format_exc()}].')
-            }
-            raise web.HTTPBadRequest(body=json.dumps(data, indent=4))
+            self.get_exception(f'An error occurred while creating file [{file_path}]: [{format_exc()}].')
 
     async def delete_obj(self, request: web.Request, *args, **kwargs) -> web.Response:
         """Coroutine for deleting file|directory.
@@ -177,10 +166,10 @@ class WebHandler:
 
         """
         try:
-            Color.logging_color('(!) Received a request to delete file!', 'warn')
+            Color.logging_color('(!) Received a request to delete object!', 'warn')
             path = request.match_info.get('path', '')
             abs_path = os.path.abspath(path)
-            logging.info(f'file_path = [{abs_path}].')
+            logging.info(f'path = [{abs_path}].')
 
             FileService.delete_obj(abs_path)
 
@@ -189,8 +178,19 @@ class WebHandler:
                 'message': f'[{path}] was successfully deleted.'
             })
         except Exception:
-            data = {
+            self.get_exception(f'An error occurred when deleting file [{path}]: [{format_exc()}].')
+
+    def get_exception(self, error_text: str):
+        """Gets an HTTPBadRequest exception (400 HTTP error).
+
+        Args:
+            error_text (str): the message passed to the exception.
+
+        Returns:
+            HTTPBadRequest exception: 400 HTTP error.
+        """
+        data = {
                 'status': 'error',
-                'message': (f'An error occurred when deleting file [{path}]: [{format_exc()}].')
+                'message': error_text
             }
-            raise web.HTTPBadRequest(body=json.dumps(data, indent=4))
+        raise web.HTTPBadRequest(body=json.dumps(data, indent=4))

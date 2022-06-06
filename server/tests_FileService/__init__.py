@@ -1,4 +1,4 @@
-"""Pytests for server."""
+"""Pytests for file service."""
 __all__ = [
     'conftest',
     'test_0_change_dir',
@@ -8,4 +8,4 @@ __all__ = [
     'test_4_delete_obj',
 ]
 
-NAME = 'Pytests for server.'
+NAME = 'Pytests file service.'

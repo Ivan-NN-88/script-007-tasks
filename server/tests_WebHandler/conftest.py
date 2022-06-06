@@ -4,7 +4,7 @@ import requests
 
 from config.config import config
 
-domain = 'http://127.0.0.1:8080'
+domain = f'http://127.0.0.1:{config.port}'
 file_dir = 'tmp'
 file_name = 'tmp.txt'
 
