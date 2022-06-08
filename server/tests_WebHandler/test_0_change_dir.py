@@ -2,7 +2,9 @@ import requests
 
 
 def test_change_dir(obj_info):
-    """Checking the request for the correct modification of the working directory."""
+    """
+    Checking the request for the correct modification of the working directory.
+    """
     domain = obj_info[0]
     tmp_dir_name = obj_info[1]
 

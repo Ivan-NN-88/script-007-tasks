@@ -11,8 +11,8 @@ def test_create_file(obj_info):
     headers = {'Content-type': 'text/html'}
 
     response = requests.post(f'{domain}/files/{tmp_file_name}',
-                            data=test_data.encode('utf-8'),
-                            headers=headers)
+                             data=test_data.encode('utf-8'),
+                             headers=headers)
     assert response.status_code == 200
     pretty_response = json.loads(response.text)
     assert pretty_response['data']['content'] == test_data

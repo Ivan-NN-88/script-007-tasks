@@ -1,4 +1,5 @@
 import os
+
 from FileService import create_file, delete_obj
 
 
@@ -9,7 +10,8 @@ def test_create_file(directory_handler):
         delete_obj(directory_handler)
     assert not os.path.exists(directory_handler)
 
-    # I make sure that the file has been created and returned a data dictionary with certain keys|values.
+    # I make sure that the file has been created and returned a data
+    # dictionary with certain keys|values.
     result = create_file(directory_handler, b'Test text.')
     assert os.path.exists(directory_handler)
     assert isinstance(result, dict)

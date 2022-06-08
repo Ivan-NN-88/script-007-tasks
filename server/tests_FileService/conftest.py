@@ -5,7 +5,6 @@ from shutil import rmtree
 from FileService import change_dir
 from config.config import config
 
-
 file_name = 'tmp.txt'
 file_dir = os.path.join(config.main_dir, 'tmp')
 file_path = os.path.join(file_dir, file_name)
@@ -13,6 +12,7 @@ file_path = os.path.join(file_dir, file_name)
 
 @pytest.fixture(scope='session')
 def directory_remover(request):
+
     def remover():
         """Remove tmp directory."""
         if os.path.exists(file_dir):
@@ -20,7 +20,7 @@ def directory_remover(request):
             rmtree(file_dir)
 
     remover()
-    yield   # Run tests.
+    yield  # Run tests.
     remover()
 
 

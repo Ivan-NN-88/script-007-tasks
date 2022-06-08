@@ -1,5 +1,6 @@
 import os
-from FileService import delete_obj, create_file, delete_obj
+
+from FileService import create_file, delete_obj
 
 
 def test_delete_obj(directory_handler):

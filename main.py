@@ -25,10 +25,10 @@ def main():
     app.add_routes([
         web.get('/', handler.handle),
         web.get('/files', handler.get_files),
-        web.get('/files/{file_path}', handler.get_file_data),
-        web.post('/change_dir/{path}', handler.change_dir),
+        web.get('/files/{file_path:.+}', handler.get_file_data),
+        web.post('/change_dir/{path:.+}', handler.change_dir),
         web.post('/files/{file_path}', handler.create_file),
-        web.delete('/files/{path}', handler.delete_obj),
+        web.delete('/files/{path:.+}', handler.delete_obj),
     ])
     web.run_app(app, port=config.port)
 
