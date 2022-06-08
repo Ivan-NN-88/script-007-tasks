@@ -7,6 +7,7 @@ def myadd(a, b):
     return a + b
 
 
+# needed for coverage
 def tricky_func():
     a = 1
     b = a + 1

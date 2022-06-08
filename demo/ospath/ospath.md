@@ -56,13 +56,15 @@ True
 ```
 
 os.path.is*(path) - проверить что объект является контретным типом
-
 os.path.islink(path)
 os.path.isdir(path)
 os.path.isfile(path)
 
-
 os.path.getsize(path) - получить размер файла
+
+os.path.getctime(path) - получить время создания файла
+os.path.getmtime(path) - получить время модификации файла
+Основнйо пакет для работы со временем [`datatime`](https://docs.python.org/3/library/datetime.html).
 
 ## Нормализация путей
 

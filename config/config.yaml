@@ -1,8 +1,0 @@
-# Working directory.
-dir: tmp
-# Logging level.
-level: DEBUG
-# The name of the log file we are writing logs to.
-logfilename: server.log
-# The port that the file server uses.
-port: 8080

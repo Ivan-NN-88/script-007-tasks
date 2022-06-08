@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Form</title>
+  </head>
+  <body>
+    <div>
+      {% if login %}
+        Your login is {{ login }}
+        {% else %}
+        You haven't sent the form
+      {% endif %}
+    </div>
+    <div>
+      <h1>Fill the form:</h1>
+      <form action="/form" method="post" accept-charset="utf-8"
+            enctype="application/x-www-form-urlencoded">
+
+          <label for="login">Login</label>
+          <input id="login" name="login" type="text" value="" autofocus/>
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" value=""/>
+
+          <input type="submit" value="login"/>
+      </form>
+    </div>
+  </body>
+</html>

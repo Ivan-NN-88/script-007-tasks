@@ -1,76 +1,59 @@
-"""Working with user."""
-
-import logging
-
 import psycopg2
-from psycopg2.extensions import AsIs
+from utils.Config import config
 
-from config.config import config
-from utils.log import Color
+# TODO: make it async
 
-
-class UserDataBase:
-    """Working with the user database"""
+class UserService:
 
     def __init__(self):
-        self.conn = psycopg2.connect(**config.db)
-        self.conn.autocommit = True
-        self.cursor = self.conn.cursor()
-        self.table = config.user_table_name
-        self.tableAs = AsIs(self.table)
-        # I check the availability of the necessary table in the database.
-        # If not, I create it.
-        self.__get_user_table()
+        self.conn = psycopg2.connect(
+            host=config.database.host,
+            port=config.database.port,
+            dbname=config.database.name,
+            user=config.database.user,
+            password=config.database.password,
+        )
+        self.cur = self.conn.cursor()
+        self.cur.autocommit = True
 
-    def __del__(self):
-        # Close user database.
-        self.cursor.close()
+        query = """
+create table if not exists users (
+  id uuid primary key,
+  name varchar(50) not null,
+  password char(64) not null, -- 32 bytes of sha256 in hex form (multiple by 2)
+  registration timestamp,
+  last_login timestamp
+);
+
+create table if not exists sessions (
+  id uuid primary key,
+  user_id uuid references users(id),
+  expires timestamp
+);
+"""
+        self.cur.execute(query)
+
+    def __del__(self) -> None:
+        self.cur.close()
         self.conn.close()
 
-    def __get_user_table(self) -> None:
-        """
-        Checking the availability of the required table in the database.
-        If not, create a database.
-        """
-        logging.info(f'Getting a table [{self.table}] from the database...')
 
-        self.cursor.execute(
-            "select * from information_schema.tables where table_name=%s",
-            (self.table, ))
-        if not self.cursor.rowcount:
-            Color.logging_color(f'Table [{self.table}] not found! Creating...',
-                                'warn')
+def register(username: str, password: str) -> None:
+    # TODO: implement
+    pass
 
-            query = '''create table if not exists %s (
-                    id uuid primary key,
-                    username varchar(20) not null,
-                    userpass varchar(255) not null,
-                    hiredate timestamp
-                    )
-                    '''
-            self.cursor.execute(query, (self.tableAs, ))
 
-        logging.info(f'Table [{self.table}] is obtained from the database.')
 
-    def login(self, username: str, password: str) -> bool:
-        """
-        Checking the user for the presence
-        of records in the database and login.
-        """
-        query = '''select username, userpass from %s
-                where username=%s and userpass=%s
-                '''
-        self.cursor.execute(query, (self.tableAs, username))
-        for record in self.cursor.fetchall():
-            print(record)
+def login(username: str, password: str) -> None:
+    # TODO: implement
+    pass
 
-        ...     # TODO need to finish
 
-    def check_auth(self, token: str) -> bool:
-        ...     # TODO need to finish
+def check_auth(token: str) -> bool:
+    # TODO: implement
+    pass
 
-    def logout(self, token: str) -> None:
-        ...     # TODO need to finish
 
-    def register(self, username: str, password: str) -> None:
-        ...     # TODO need to finish
+def logout(token: str) -> None:
+    # TODO: implement
+    pass

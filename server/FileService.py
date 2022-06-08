@@ -1,34 +1,14 @@
-"""Working in the file server."""
-
 import logging
 import os
 import re
-import time
-from shutil import rmtree
+import shutil
 
-from config.config import config
+import utils.TimeUtils as TimeUtils
 
 
-def __checking_path(path: str) -> bool:
-    """Checks the path for the content of "..".
-
-    Args:
-        path (str): specify the path to check.
-
-    Raises:
-        ValueError: if path is invalid.
-    """
-    logging.info(f"Checking the path [{path}] for validity...")
-
-    abs_path = os.path.abspath(path)
-
-    if re.findall(r"[/\\]..[/\\]|C[:/\\]+Windows", abs_path):
-        raise ValueError(f"Path [{path}] is invalid!")
-    if config.main_dir not in abs_path:
-        raise ValueError(f"[{path}] - Are you trying to work outside the "
-                         "scope of the current project!")
-
-    logging.info(f"Checking the path [{path}] for validity is completed.")
+def _is_unsafe_folder_name(path: str) -> bool:
+    # security check
+    return bool(re.search(r'(^|[\\/])\.\.($|[\\/])', path))
 
 
 def change_dir(path: str, autocreate: bool = True) -> None:
@@ -42,26 +22,20 @@ def change_dir(path: str, autocreate: bool = True) -> None:
         RuntimeError: if directory does not exist and autocreate is False.
         ValueError: if path is invalid.
     """
-    logging.info(f"Changing the current application directory to [{path}]...")
 
-    # Checking/creating a directory.
-    __checking_path(path)
-    path_exists = os.path.exists(path)
-    if autocreate and not path_exists:
-        logging.info("There is no such directory, I am creating it...")
-        os.makedirs(path)
-        logging.info("The creation of the directory is completed.")
-    elif not autocreate and not path_exists:
-        text_error = (
-            f"The directory [{path}] does not exist and autocreate is False!")
-        raise RuntimeError(text_error)
+    if _is_unsafe_folder_name(path):
+        raise ValueError('Incorrect value of folder: {}'.format(path))
 
-    # Change directory.
+    if not os.path.exists(path):
+        if autocreate:
+            try:
+                os.makedirs(path)
+            except WindowsError as err:
+                raise RuntimeError(str(err))
+        else:
+            raise RuntimeError('Directory {} is not found'.format(path))
     os.chdir(path)
-
-    logging.info(
-        f"Changing the current application directory to [{path}] is completed."
-    )
+    logging.debug("change working directory to '%s'", path)
 
 
 def get_files() -> list:
@@ -70,31 +44,62 @@ def get_files() -> list:
     Returns:
         List of dicts, which contains info about each file. Keys:
         - name (str): filename
-        - create_date (datetime): date of file creation.
         - edit_date (datetime): date of last file modification.
         - size (int): size of file in bytes.
     """
-    logging.info("Getting info about all files in working directory...")
 
-    result = []
+    path = os.getcwd()
 
-    for file in os.listdir(os.getcwd()):
-        if not os.path.isfile(file):
-            continue
+    # get list of files in `path`
+    files = []
+    for root, dirnames, filenames in os.walk(path):
+        for filename in filenames:
+            files.append(os.path.join(root, filename))
 
-        file_info = {
-            "name": file,
-            "create_date": time.ctime(os.path.getctime(file)),
-            "edit_date": time.ctime(os.path.getmtime(file)),
-            "size": os.path.getsize(file),
-        }
+    # collect information about each file
+    data = []
+    prefix_size = len(path) + 1
+    for full_filename in files:
+        filename = full_filename[prefix_size:]
+        data.append({
+            'name':
+                filename,
+            'edit_date':
+                TimeUtils.floattime_to_datatime(os.path.getmtime(full_filename)
+                                               ),
+            'size':
+                os.path.getsize(full_filename),
+        })
 
-        result.append(file_info)
+    return data
 
-    logging.info(
-        "Getting info about all files in working directory is completed.")
 
-    return result
+def _filename_to_local_path(filename: str,
+                            folder_autocreate: bool = False) -> str:
+    """Get local path for filename.
+
+    Args:
+        filename (str): Filename
+        folder_autocreate (bool): Create a subfolder if True
+
+    Returns:
+        (str) Local path.
+
+    Raises:
+        ValueError: if filename is invalid.
+    """
+
+    if _is_unsafe_folder_name(filename):
+        raise ValueError('Incorrect value of filename: {}'.format(filename))
+
+    path = os.getcwd()
+    full_filename = os.path.join(path, filename)
+
+    folder = os.path.dirname(full_filename)
+    if folder_autocreate:
+        os.makedirs(folder)
+
+    return full_filename
 
 
 def get_file_data(filename: str) -> dict:
@@ -106,8 +111,7 @@ def get_file_data(filename: str) -> dict:
     Returns:
         Dict, which contains full info about file. Keys:
         - name (str): filename
-        - content (str): file content
-        - create_date (datetime): date of file creation
+        - content (bytes): file content
         - edit_date (datetime): date of last file modification
         - size (int): size of file in bytes
 
@@ -115,29 +119,22 @@ def get_file_data(filename: str) -> dict:
         RuntimeError: if file does not exist.
         ValueError: if filename is invalid.
     """
-    logging.info(f"Getting full info about file [{filename}]...")
 
-    with open(filename, "rb") as file:
-        data = file.read()
+    local_file = _filename_to_local_path(filename)
+    if not os.path.exists(local_file):
+        raise RuntimeError('File {} does not exist'.format(filename))
 
-    # The content must be returned in a string representation.
-    # I try utf-8 first, then ANSI.
-    try:
-        data = data.decode()
-    except Exception:
-        data = data.decode("ANSI")
-
-    file_info = {
-        "name": os.path.split(filename)[-1],
-        "content": data,
-        "create_date": time.ctime(os.path.getctime(filename)),
-        "edit_date": time.ctime(os.path.getmtime(filename)),
-        "size": os.path.getsize(filename),
-    }
-
-    logging.info(f"Getting full info about file [{filename}] is completed.")
-
-    return file_info
+    with open(local_file, 'rb') as file_handler:
+        return {
+            'name':
+                filename,
+            'edit_date':
+                TimeUtils.floattime_to_datatime(os.path.getmtime(local_file)),
+            'size':
+                os.path.getsize(local_file),
+            'content':
+                file_handler.read(),
+        }
 
 
 def create_file(filename: str, content: bytes = None) -> dict:
@@ -145,66 +142,60 @@ def create_file(filename: str, content: bytes = None) -> dict:
 
     Args:
         filename (str): Filename.
-        content (bytes): Bytes with file content.
+        content (str): String with file content.
 
     Returns:
         Dict, which contains name of created file. Keys:
         - name (str): filename
-        - content (str): file content
-        - create_date (datetime): date of file creation
+        - content (bytes): file content
+        - edit_date (datetime): date of file creation
         - size (int): size of file in bytes
 
     Raises:
         ValueError: if filename is invalid.
     """
-    logging.info(f"Creating a file [{filename}] with content...")
 
-    # Checking the file for validity.
-    __checking_path(filename)
+    local_file = _filename_to_local_path(filename)
 
-    # Create file.
-    with open(filename, "wb") as file:
-        if content:
-            # data = bytes(content)
-            file.write(content)
+    if os.path.exists(local_file):
+        logging.warning('file %s exists', local_file)
 
-    logging.info(f"Creating a file [{filename}] with content is completed.")
+    try:
+        with open(local_file, 'wb') as file_handler:
+            if content:
+                data = content
+                file_handler.write(data)
+    except OSError as e:
+        raise ValueError(f'Cannot create file {filename}: {str(e)}')
 
-    return get_file_data(filename)
+    return {
+        'name':
+            filename,
+        'edit_date':
+            TimeUtils.floattime_to_datatime(os.path.getmtime(local_file)),
+        'size':
+            os.path.getsize(local_file),
+        'content':
+            content,
+    }
 
 
-def delete_obj(path: str) -> None:
-    """Delete file|directory.
+def delete_file(filename: str) -> None:
+    """Delete file.
 
     Args:
-        path (str): path to filename or directory.
-
-    Returns:
-        obj_name if the file|directory was successfully deleted.
+        filename (str): filename
 
     Raises:
-        RuntimeError: if path does not exist.
-        ValueError: if path is invalid.
+        RuntimeError: if file does not exist.
+        ValueError: if filename is invalid.
     """
-    logging.info(f"Deleting [{path}]...")
 
-    # Checking a file.
-    __checking_path(path)
-    if not os.path.exists(path):
-        raise RuntimeError(f"[{path}] does not exist!")
+    local_file = _filename_to_local_path(filename)
+    if not os.path.exists(local_file):
+        raise RuntimeError('File {} does not exist'.format(filename))
 
-    # Deleting file.
-    if os.path.isfile(path):
-        obj_name = "file"
-        os.remove(path)
-    # Deleting directory.
+    if os.path.isdir(local_file):
+        shutil.rmtree(local_file)
     else:
-        obj_name = "directory"
-        rmtree(path)
-
-    if not os.path.exists(path):
-        logging.info(f"Deleting a {obj_name} [{path}] is completed.")
-        return obj_name
-    else:
-        raise RuntimeError(f"{obj_name.capitalize()} {path} "
-                           "could not be deleted!")
+        os.remove(local_file)

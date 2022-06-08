@@ -24,4 +24,5 @@ parser.add_argument('-p', '--port',
 
 params = parser.parse_args()
 print(str(params))
-print("server port is {}".format(params.port))
+print(f"server port is {type(params.port)}")
+print(f"server port is {params.port}")

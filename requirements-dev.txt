@@ -1,0 +1,5 @@
+autopep8
+pytest
+pytest-cov
+pytest-asyncio
+coverage

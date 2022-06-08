@@ -1,46 +1,70 @@
-"""
-+++++++++++++++++++++++++++++++++++++++++
-+ Project: File server                  +
-+ Developer: Viharev Ivan Alexandrovich +
-+ Year: 2022                            +
-+++++++++++++++++++++++++++++++++++++++++
-"""
-
+#!/usr/bin/env python3
 import logging
-from traceback import format_exc
+import logging.config
+import os.path
+import sys
 
 from aiohttp import web
 
-from config.config import config
-from server.WebHandler import WebHandler
-from utils.log import Color, LogSetter
+import server.WebHandler
+import utils.Config
+
+
+def setup_logger(level='NOTSET', filename=None):
+    logger_conf = {
+        'version': 1,
+        'formatters': {
+            'default': {
+                'format':
+                    '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+            },
+        },
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'default',
+                'level': level,
+            },
+        },
+        'root': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        }
+    }
+    if filename:
+        logger_conf['handlers']['file'] = {
+            'class': 'logging.FileHandler',
+            'encoding': 'UTF-8',
+            'formatter': 'default',
+            'filename': filename,
+        }
+        logger_conf['root']['handlers'].append('file')
+    logging.config.dictConfig(logger_conf)
 
 
 def main():
-    """Start of the file server."""
-    logging.info('Start of the file server...')
+    setup_logger(level=logging.getLevelName(utils.Config.data.log.level.upper()),
+                 filename=utils.Config.data.log.file)
+    logging.debug('started')
+    utils.Config.data.dir = utils.Config.data.dir if os.path.isabs(utils.Config.data.dir) \
+        else os.path.abspath(utils.Config.data.dir)
+    logging.debug('config %s', utils.Config.data.to_dict())
 
-    handler = WebHandler()
-    app = web.Application()
-    app.add_routes([
-        web.get('/', handler.handle),
-        web.get('/files', handler.get_files),
-        web.get('/files/{file_path:.+}', handler.get_file_data),
-        web.post('/change_dir/{path:.+}', handler.change_dir),
-        web.post('/files/{file_path}', handler.create_file),
-        web.delete('/files/{path:.+}', handler.delete_obj),
-    ])
-    web.run_app(app, port=config.port)
-
-    logging.info('File server stopped.')
+    app = server.WebHandler.get_aiohttp_server()
+    web.run_app(app, host=utils.Config.data.host, port=utils.Config.data.port)
 
 
 if __name__ == '__main__':
-    # Setting up logging.
-    LogSetter(config.logfilename, config.level).set_mode2()
-
-    # Start file server.
     try:
+        setup_logger(level=logging.getLevelName(utils.Config.data.log.level.upper()),
+                     filename=utils.Config.data.log.file)
         main()
-    except Exception:
-        Color.logging_color(f'The server is stopped:\n{format_exc()}', 'error')
+    except SystemExit:
+        # argparse throws it (even in `-h`)
+        sys.exit(1)
+    except KeyboardInterrupt:
+        print(f'\nERROR: Interrupted by user', file=sys.stderr)
+        sys.exit(1)
+    except BaseException as err:
+        print(f'ERROR: Something goes wrong:\n{str(err)}', file=sys.stderr)
+        sys.exit(1)
