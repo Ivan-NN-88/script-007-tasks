@@ -4,9 +4,11 @@ import requests
 
 
 def test_get_files(obj_info):
-    """Checking the request for information about all files in the working directory."""
+    """
+    Checking the request for information about all files in
+    the working directory.
+    """
     domain = obj_info[0]
-    tmp_dir_name = obj_info[1]
     tmp_file_name = obj_info[2]
 
     # Creating a tmp file for the test.
